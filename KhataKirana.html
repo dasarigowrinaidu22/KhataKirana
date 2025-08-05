@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KhataKirana - Groceries on Credit – Pay Later</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom animations for the page */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        .animate-fade-in.delay-300 { animation-delay: 0.3s; }
+        .animate-fade-in.delay-500 { animation-delay: 0.5s; }
+        .animate-fade-in.delay-700 { animation-delay: 0.7s; }
+        .animate-fade-in.delay-900 { animation-delay: 0.9s; }
+        .animate-fade-in.delay-1100 { animation-delay: 1.1s; }
+        .animate-fade-in.delay-1300 { animation-delay: 1.3s; }
+        .animate-fade-in.delay-1500 { animation-delay: 1.5s; }
+        .animate-fade-in.delay-1700 { animation-delay: 1.7s; }
+
+        .animate-scale-in {
+            animation: scaleIn 0.8s ease-out forwards;
+        }
+
+        .animate-scale-in.delay-300 { animation-delay: 0.3s; }
+        .animate-scale-in.delay-1000 { animation-delay: 1s; }
+
+        /* Toast styles */
+        #toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .toast {
+            background-color: rgba(34, 197, 94, 0.9); /* green-500 with opacity */
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            min-width: 250px;
+            max-width: 350px;
+            animation: slideInRight 0.5s forwards;
+        }
+        .toast.error {
+             background-color: rgba(239, 68, 68, 0.9); /* red-500 with opacity */
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .toast-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .toast-description {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Inter font for better readability */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Coming Soon specific styles */
+        .coming-soon-badge {
+            background-color: #FF7043; /* Peach/Coral */
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px; /* Fully rounded */
+            font-weight: bold;
+            font-size: 1.25rem; /* text-xl */
+            letter-spacing: 0.05em; /* tracking-wide */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
+            50% { transform: scale(1.05); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); }
+            100% { transform: scale(1); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
+        }
+    </style>
+</head>
+<body class="font-sans antialiased bg-gray-50 text-gray-800">
+    <div class="min-h-screen relative overflow-hidden">
+        <!-- Background elements - softened for a cleaner look -->
+        <div
+            class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
+            style="background-image: url('https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80')"
+        ></div>
+
+        <div class="absolute inset-0 bg-gradient-to-br from-green-50/70 via-white/80 to-[#FFF0EC]"></div>
+
+        <div class="relative z-10 min-h-screen flex flex-col">
+            <!-- Navigation Bar -->
+            <nav class="bg-white shadow-md p-4 sticky top-0 z-50">
+                <div class="max-w-7xl mx-auto flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-[#FF7043] rounded-lg flex items-center justify-center shadow-md">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white lucide lucide-leaf"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8a9 9 0 0 1-18 0c0-6 4-9 10-9 6 0 10 1 10 1v2l-2.9.2c-2.8 2-7 1.5-10.8 2.6A9 9 0 0 0 11 20Z"/></svg>
+                        </div>
+                        <span class="text-green-700 font-bold text-2xl">KhataKirana</span>
+                    </div>
+
+                    <!-- Search Bar (Desktop) -->
+                    <div class="hidden md:flex flex-1 mx-8">
+                        <div class="relative w-full max-w-lg">
+                            <input
+                                type="text"
+                                placeholder="Search for groceries..."
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-700"
+                            />
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-6 text-gray-600">
+                        <a href="#" class="hover:text-green-700 transition-colors cursor-pointer font-medium hidden md:block">Home</a>
+                        <a href="#" class="hover:text-green-700 transition-colors cursor-pointer font-medium hidden md:block">Shop</a>
+                        <a href="#" class="hover:text-green-700 transition-colors cursor-pointer font-medium hidden md:block">Categories</a>
+                        <a href="#" class="hover:text-green-700 transition-colors cursor-pointer font-medium hidden md:block">Offers</a>
+                        <a href="#" class="hover:text-green-700 transition-colors cursor-pointer font-medium">
+                            <div class="relative">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                                <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                            </div>
+                        </a>
+                        <!-- Added "Pay Later" link -->
+                        <a href="#" class="hover:text-green-700 transition-colors cursor-pointer font-medium hidden md:block">Pay Later</a>
+                        <button class="md:hidden">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- Search Bar (Mobile) -->
+                <div class="md:hidden mt-4">
+                    <div class="relative w-full">
+                        <input
+                            type="text"
+                            placeholder="Search for groceries..."
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-700"
+                        />
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Hero Section with Coming Soon Label -->
+            <header class="bg-gradient-to-r from-green-50 to-[#FFF0EC] py-20 px-4 text-center">
+                <div class="max-w-4xl mx-auto space-y-6 animate-fade-in">
+                    <span class="coming-soon-badge inline-block mb-4">COMING SOON</span>
+                    <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-green-800 leading-tight">
+                        KhataKirana
+                    </h1>
+                    <p class="text-xl md:text-2xl font-semibold text-gray-700 mb-8">The Online Credit-Based Grocery Store</p>
+                    <p class="text-xl md:text-2xl text-gray-600 font-light max-w-3xl mx-auto leading-relaxed">
+                        Get your fresh groceries today and pay at your convenience with our seamless credit options.
+                    </p>
+                    <div class="animate-scale-in delay-300">
+                        <a href="#" class="inline-block bg-gradient-to-r from-green-500 to-[#FF7043] hover:from-green-600 hover:to-[#EB5F3B] text-white px-10 py-4 rounded-full text-xl font-semibold shadow-xl transition-all duration-300 transform hover:scale-105">
+                            Learn More About Pay Later
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- What is Khata Kirana & How it Works Section -->
+            <section class="py-16 px-4 bg-gray-100">
+                <div class="max-w-7xl mx-auto text-center">
+                    <h2 class="text-4xl font-bold text-green-800 mb-12 animate-fade-in delay-300">What is Khata Kirana & How it Works</h2>
+                    <div class="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 animate-fade-in delay-500 text-left">
+                        <p class="text-lg text-gray-700 mb-6 leading-relaxed">
+                            Khata Kirana is a modern grocery retail chain that seamlessly integrates offline supermarkets with app-based shopping, offering structured credit-based purchasing. We aim to revolutionize how Indian households, especially salaried individuals and lower-income families, manage their grocery expenses by providing unparalleled financial flexibility.
+                        </p>
+                        <h3 class="text-2xl font-bold text-green-700 mb-4">Our Unique Approach:</h3>
+                        <ul class="list-disc list-inside text-lg text-gray-700 space-y-3 pl-4">
+                            <li>
+                                <strong>Digital Khata & Micro-Credit:</strong> We offer digital credit facilities, enabling customers to purchase essential groceries on credit with flexible, structured repayment plans. This bridges the gap left by traditional supermarkets and e-commerce platforms that operate on upfront payments.
+                            </li>
+                            <li>
+                                <strong>Hybrid Grocery Model:</strong> Combining the deep-rooted trust and personalized service of local kirana stores with the speed and convenience of quick commerce. Shop online through our app or visit our physical stores – always with the option to pay later.
+                            </li>
+                            <li>
+                                <strong>Empowering Financial Flexibility:</strong> With only a fraction of Indian households having access to credit cards for daily necessities, Khata Kirana provides a vital solution, allowing millions to access groceries without immediate upfront payment.
+                            </li>
+                            <li>
+                                <strong>Direct Control:</strong> By operating our own grocery stores, we maintain full control over inventory, pricing, and the overall customer experience, ensuring quality and value.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- How Buy Now, Pay Later Works Section -->
+            <section class="py-16 px-4 bg-white">
+                <div class="max-w-7xl mx-auto text-center">
+                    <h2 class="text-4xl font-bold text-green-800 mb-12 animate-fade-in delay-300">How "Pay Later" Works</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <!-- Step 1 -->
+                        <div class="bg-blue-50 rounded-2xl p-8 shadow-md border border-blue-100 hover:shadow-xl transition-all duration-300 hover:scale-105 animate-fade-in delay-500">
+                            <div class="w-16 h-16 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-700 lucide lucide-credit-card"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-blue-700 mb-4">1. Apply for Credit</h3>
+                            <p class="text-gray-600 leading-relaxed">Complete a quick and easy application to get approved for your credit limit.</p>
+                        </div>
+                        <!-- Step 2 -->
+                        <div class="bg-purple-50 rounded-2xl p-8 shadow-md border border-purple-100 hover:shadow-xl transition-all duration-300 hover:scale-105 animate-fade-in delay-700">
+                            <div class="w-16 h-16 bg-purple-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-700 lucide lucide-shopping-cart"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-purple-700 mb-4">2. Shop Your Groceries</h3>
+                            <p class="text-gray-600 leading-relaxed">Browse and add your desired items to cart. Choose 'Pay Later' at checkout.</p>
+                        </div>
+                        <!-- Step 3 -->
+                        <div class="bg-teal-50 rounded-2xl p-8 shadow-md border border-teal-100 hover:shadow-xl transition-all duration-300 hover:scale-105 animate-fade-in delay-900">
+                            <div class="w-16 h-16 bg-teal-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-700 lucide lucude-calendar-check"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-teal-700 mb-4">3. Pay on Your Terms</h3>
+                            <p class="text-gray-600 leading-relaxed">Enjoy interest-free repayment periods and flexible payment options.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Categories Section (Remains the same) -->
+            <section class="py-16 px-4 bg-gray-50">
+                <div class="max-w-7xl mx-auto text-center">
+                    <h2 class="text-4xl font-bold text-green-800 mb-12 animate-fade-in delay-300">Explore Our Categories</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <!-- Category Card 1 -->
+                        <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:scale-105 animate-fade-in delay-500">
+                            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <img src="https://placehold.co/80x80/EBFBE4/22C55E?text=Produce" alt="Fresh Produce" class="rounded-full">
+                            </div>
+                            <h3 class="text-xl font-bold text-green-700 mb-2">Fresh Produce</h3>
+                            <p class="text-gray-500">Farm-fresh fruits & vegetables</p>
+                        </div>
+                        <!-- Category Card 2 -->
+                        <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:scale-105 animate-fade-in delay-700">
+                            <!-- Updated category icon background to use the new secondary color -->
+                            <div class="w-20 h-20 bg-[#FFECD6] rounded-full flex items-center justify-center mx-auto mb-6">
+                                <img src="https://placehold.co/80x80/FFFBEB/F59E0B?text=Dairy" alt="Dairy & Bakery" class="rounded-full">
+                            </div>
+                            <h3 class="text-xl font-bold text-yellow-700 mb-2">Dairy & Bakery</h3>
+                            <p class="text-gray-500">Milk, bread, cheese & fresh bakes</p>
+                        </div>
+                        <!-- Category Card 3 -->
+                        <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:scale-105 animate-fade-in delay-900">
+                            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <img src="https://placehold.co/80x80/E0F7FA/0288D1?text=Pantry" alt="Pantry Staples" class="rounded-full">
+                            </div>
+                            <h3 class="text-xl font-bold text-blue-700 mb-2">Pantry Staples</h3>
+                            <p class="text-gray-500">Grains, spices, oils & more</p>
+                        </div>
+                        <!-- Category Card 4 -->
+                        <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:scale-105 animate-fade-in delay-1100">
+                            <!-- Updated category icon background to use the new secondary color -->
+                            <div class="w-20 h-20 bg-[#FFECD6] rounded-full flex items-center justify-center mx-auto mb-6">
+                                <img src="https://placehold.co/80x80/FEE2E2/DC2626?text=Snacks" alt="Snacks & Beverages" class="rounded-full">
+                            </div>
+                            <h3 class="text-xl font-bold text-red-700 mb-2">Snacks & Beverages</h3>
+                            <p class="text-gray-500">Your favorite treats & drinks</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Newsletter Signup -->
+            <section class="py-16 px-4 bg-gray-100">
+                <div class="max-w-lg mx-auto bg-white rounded-3xl p-8 shadow-xl border border-gray-100 animate-scale-in delay-1000 text-center">
+                    <h2 class="text-3xl font-bold text-green-800 mb-3">Join Our Newsletter</h2>
+                    <p class="text-gray-600 mb-8">Get the latest offers, new arrivals, and healthy recipes directly in your inbox.</p>
+                    <form id="email-signup-form" class="flex flex-col sm:flex-row gap-4">
+                        <input
+                            type="email"
+                            id="email-input"
+                            placeholder="Enter your email address"
+                            class="flex-1 bg-gray-50 border border-gray-300 text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-green-400 transition-colors h-12 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
+                            required
+                        />
+                        <button
+                            type="submit"
+                            class="bg-gradient-to-r from-green-500 to-lime-600 hover:from-green-600 hover:to-lime-700 text-white px-8 py-3 h-12 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 border-0"
+                        >
+                            Subscribe
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+
+            <!-- Footer -->
+            <footer class="bg-gray-800 text-gray-300 py-10 px-4">
+                <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div class="flex flex-col items-center md:items-start">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-[#FF7043] rounded-lg flex items-center justify-center shadow-md">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-white lucide lucide-leaf"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8a9 9 0 0 1-18 0c0-6 4-9 10-9 6 0 10 1 10 1v2l-2.9.2c-2.8 2-7 1.5-10.8 2.6A9 9 0 0 0 11 20Z"/></svg>
+                            </div>
+                            <span class="text-white font-bold text-2xl">KhataKirana</span>
+                        </div>
+                        <p class="text-gray-400 text-center md:text-left">&copy; 2024 KhataKirana Technologies Pvt. Ltd.</p>
+                        <p class="text-gray-400 text-center md:text-left">Your trusted partner for fresh groceries on credit.</p>
+                    </div>
+
+                    <div class="flex flex-col items-center md:items-end gap-4">
+                        <div class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-green-400 lucide lucide-phone"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            <span>+91 7995227756</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-[#FF7043] lucide lucide-mail"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                            <span>business@khatakirana.com</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-green-400 lucide lucide-map-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                            <span>Visakhapatnam, India</span>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="https://unpkg.com/lucide-icons@latest"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Custom Toast Notification System
+        function showToast(title, description, type = 'success') {
+            const toastContainer = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.classList.add('toast');
+            if (type === 'error') {
+                toast.classList.add('error');
+            }
+
+            const toastTitle = document.createElement('div');
+            toastTitle.classList.add('toast-title');
+            toastTitle.textContent = title;
+
+            const toastDescription = document.createElement('div');
+            toastDescription.classList.add('toast-description');
+            toastDescription.textContent = description;
+
+            toast.appendChild(toastTitle);
+            toast.appendChild(toastDescription);
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.5s forwards';
+                toast.addEventListener('animationend', () => {
+                    toast.remove();
+                });
+            }, 5000); // Toast disappears after 5 seconds
+        }
+
+        // Handle form submission
+        document.addEventListener('DOMContentLoaded', () => {
+            const emailForm = document.getElementById('email-signup-form');
+            const emailInput = document.getElementById('email-input');
+
+            emailForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = emailInput.value;
+
+                if (email) {
+                    showToast("Subscription Confirmed!", "Thank you for subscribing to our newsletter!");
+                    emailInput.value = ''; // Clear the input
+                } else {
+                    showToast("Error", "Please enter a valid email address.", 'error');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
